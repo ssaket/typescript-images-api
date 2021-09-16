@@ -1,8 +1,7 @@
-import Unsplash from "./Unsplash";
-import Flickr from "./Flickr";
-import Pixabay from "./Pixabay";
-import Pexels from "./Pexels";
-
+import Unsplash from './Unsplash';
+import Flickr from './Flickr';
+import Pixabay from './Pixabay';
+import Pexels from './Pexels';
 
 class Commands {
   recv: any;
@@ -21,20 +20,19 @@ class Commands {
 }
 
 class SearchByName extends Commands {
-
   name: any;
-  searchTerm: any; 
+  searchTerm: any;
 
   constructor(recv: any, searchTerm: any) {
     super(recv);
 
-    this.name = "search_by_name";
+    this.name = 'search_by_name';
     this.searchTerm = searchTerm;
   }
 
   execute(cached = false) {
     if (!cached) {
-      this.recv.forEach((recv: { searchByName: (arg0: any) => any; }) => {
+      this.recv.forEach((recv: { searchByName: (arg0: any) => any }) => {
         this.executionResults.push(recv.searchByName(this.searchTerm));
       });
       return Promise.all(this.executionResults);
@@ -54,7 +52,7 @@ class SearchByTag extends Commands {
   constructor(recv: any) {
     super(recv);
 
-    this.name = "search_by_tag";
+    this.name = 'search_by_tag';
   }
   execute() {
     this.recv.action();
@@ -69,17 +67,19 @@ class SearchManager {
   constructor() {
     this.commands = [];
     this.sources = [];
-    console.info("Search Manager has been created, please add sources now");
+    console.info('Search Manager has been created, please add sources now');
   }
 
-  reset(){
+  reset() {
     this.commands = [];
     this.sources = [];
   }
 
   addSource(source: string) {
-    if (typeof source !== "string") {
-      const found = this.sources.find((element: { name: any; }) => element.name === source);
+    if (typeof source !== 'string') {
+      const found = this.sources.find(
+        (element: { name: any }) => element.name === source
+      );
       if (!found) this.sources.push(source);
     } else {
       const sourceObj = this.createSourceObject(source);
@@ -89,7 +89,7 @@ class SearchManager {
 
   removeSource(name: string) {
     const index = this.sources.findIndex(
-      (element: { name: any; }) => element.name === name.toLowerCase()
+      (element: { name: any }) => element.name === name.toLowerCase()
     );
     if (index !== -1) {
       this.sources.splice(index, 1);
@@ -98,13 +98,13 @@ class SearchManager {
 
   createSourceObject(name: string) {
     switch (name.toLowerCase()) {
-      case "unsplash":
+      case 'unsplash':
         return new Unsplash();
-      case "pexels":
+      case 'pexels':
         return new Pexels();
-      case "pixabay":
+      case 'pixabay':
         return new Pixabay();
-      case "flickr":
+      case 'flickr':
         return new Flickr();
       default:
         return null;
@@ -147,25 +147,24 @@ class SearchManager {
   }
 
   getImagesByName(name: string) {
-    if(this.sources.length === 0){
-      console.error("No sources, please add source to search");
+    if (this.sources.length === 0) {
+      console.error('No sources, please add source to search');
       return;
     }
     return new Promise((resolve, reject) => {
       const cmd = new SearchByName(this.sources, name);
       this.command(cmd);
-  
+
       this.execute().then(
-        (data) => {
+        data => {
           resolve(data);
         },
-        (error) => {
+        error => {
           reject(error);
         }
       );
     });
   }
-  
 }
 
 export default SearchManager;

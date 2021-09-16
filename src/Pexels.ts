@@ -1,17 +1,27 @@
-import FetchProxy from "./FetchProxy";
+import FetchProxy from './FetchProxy';
 
+type PexelsSearch = {
+  query: string | null;
+  local: string | null;
+  per_page: number;
+  page: number;
+};
+
+interface PexelsParams {
+  search: PexelsSearch;
+}
 export default class Pexels {
   name: string;
   url: string;
   searchURL: string;
   api_key: string;
   paginationDepth: number;
-  params: any;
-  
+  params: PexelsParams;
+
   constructor() {
-    this.name = "pexels";
-    this.url = "https://api.pexels.com/v1";
-    this.searchURL = "/search?";
+    this.name = 'pexels';
+    this.url = 'https://api.pexels.com/v1';
+    this.searchURL = '/search?';
     this.api_key = `${process.env.REACT_APP_PEXELS_API_KEY}`;
     this.paginationDepth = 3;
 
@@ -26,30 +36,34 @@ export default class Pexels {
   }
 
   searchByName(params: string | number | boolean) {
-    return new Promise((resolve, reject) => {
-      let queryString = "";
-      let response: unknown;
-      this.params["search"].query = encodeURIComponent(params);
-      for (const [key, value] of Object.entries(this.params["search"])) {
-        if (value) {
-          queryString += `${key}=${value}`.concat("&");
-        }
+
+    let queryString = '';
+    let response: unknown;
+    this.params['search'].query = encodeURIComponent(params);
+    for (const [key, value] of Object.entries(this.params['search'])) {
+      if (value) {
+        queryString += `${key}=${value}`.concat('&');
       }
-      queryString = queryString.slice(0, queryString.length - 1);
-      const url = this.url + this.searchURL + queryString;
+    }
+    queryString = queryString.slice(0, queryString.length - 1);
+    
+    const url = this.url + this.searchURL + queryString;
+    const pheader = new Headers();
+    pheader.append('Authorization', this.api_key);
+
+    return new Promise((resolve, reject) => {
+     
       const fetchProxy = new FetchProxy();
-      const pheader = new Headers();
-      pheader.append("Authorization", this.api_key);
       const myRequest = new Request(url, {
-        method: "GET",
+        method: 'GET',
         headers: pheader,
-        mode: "cors",
-        cache: "default",
+        mode: 'cors',
+        cache: 'default',
       });
       fetchProxy
         .getCustomRequest(myRequest)
-        .then((resp) => resp.json())
-        .then((data) => {
+        .then(resp => resp.json())
+        .then(data => {
           response = this.processResponse(data);
           this.addPaginatedResponse(response as any, data.next_page).then(() =>
             resolve(response)
@@ -63,36 +77,40 @@ export default class Pexels {
 
     const fetchProxy = new FetchProxy();
     const pheader = new Headers();
-    pheader.append("Authorization", this.api_key);
+    pheader.append('Authorization', this.api_key);
     const myRequest = new Request(url, {
-      method: "GET",
+      method: 'GET',
       headers: pheader,
-      mode: "cors",
-      cache: "default",
+      mode: 'cors',
+      cache: 'default',
     });
     const nresp = await fetchProxy.getACustomRequest(myRequest);
     const results = nresp.photos;
-    results.forEach((item: { id: string; photographer: any; src: { medium: any; }; }) => {
-      resp.push({
-        id: "pex" + item.id,
-        name: item.photographer,
-        src: item.src.medium,
-      });
-    });
+    results.forEach(
+      (item: { id: string; photographer: any; src: { medium: any } }) => {
+        resp.push({
+          id: 'pex' + item.id,
+          name: item.photographer,
+          src: item.src.medium,
+        });
+      }
+    );
     this.paginationDepth--;
     this.addPaginatedResponse(resp, nresp.next_page);
   }
 
-  processResponse(response: { photos: any; }) {
-    const imageList: { id: string; name: any; src: any; }[] = [];
+  processResponse(response: { photos: any }) {
+    const imageList: { id: string; name: any; src: any }[] = [];
     const results = response.photos;
-    results.forEach((item: { id: string; photographer: any; src: { medium: any; }; }) => {
-      imageList.push({
-        id: "pex" + item.id,
-        name: item.photographer,
-        src: item.src.medium,
-      });
-    });
+    results.forEach(
+      (item: { id: string; photographer: any; src: { medium: any } }) => {
+        imageList.push({
+          id: 'pex' + item.id,
+          name: item.photographer,
+          src: item.src.medium,
+        });
+      }
+    );
     return imageList;
   }
 }
