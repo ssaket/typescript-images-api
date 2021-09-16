@@ -1,43 +1,28 @@
-export default class FetchProxy {
-    url: string;
+import fetch from 'node-fetch';
+import { RequestInit, Response } from 'node-fetch';
 
-    constructor(url: string = '') {
-      this.url = url;
-    }
-  
-    get(url: RequestInfo, params: any = { mode: "cors" }) {
-      return fetch(url, params);
-    }
+class FetchProxy {
+  static get(
+    url: string,
+    options?: RequestInit
+  ): Promise<Response> {
+    return fetch(url, options);
+  }
 
-    getCustomRequest(request: RequestInfo){
-      return fetch(request);
-    }
+  static async getJsonResponse(
+    url: string,
+    options?: RequestInit
+  ): Promise<any> {
+    const response = await fetch(url, options);
+    let content;
 
-    async getACustomRequest(request: RequestInfo){
-      const response = await fetch(request);
-      let content;
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      } 
-      else {
-        content = await response.json();
-        const jsonResponse = await content;
-        return jsonResponse;
-      }
-    }
-
-    async asyncGET(url: RequestInfo){
-      const response = await fetch(url, {mode: 'cors'});
-      let content;
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      } 
-      else {
-        content = await response.json();
-        const jsonResponse = await content;
-        return jsonResponse;
-      }
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    } else {
+      content = await response.json() as JSON;
+      return content;
     }
   }
+}
+
+export default FetchProxy;
